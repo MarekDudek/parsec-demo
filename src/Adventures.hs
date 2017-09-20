@@ -1,5 +1,6 @@
 module Adventures where
 
+
 import Control.Monad
 import Text.ParserCombinators.Parsec
 
@@ -28,6 +29,7 @@ data MemRegion = MemRegion {
     inode    :: Integer,
     pathname :: String 
 } deriving Show
+
 
 {-
 parseAddress = let
