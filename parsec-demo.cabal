@@ -32,7 +32,7 @@ test-suite parsec-demo-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  other-modules:       OfficialExampleSpec
+  other-modules:       OfficialExampleSpec, RealWorldExampleSpec
   build-depends:       base
                      , parsec
                      , parsec-demo

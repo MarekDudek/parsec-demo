@@ -9,6 +9,3 @@ parenSet = char '(' >> many parenSet >> char ')'
 
 parens :: Stream s m Char => ParsecT s u m ()
 parens = (many parenSet >> eof) <|> eof
-
-
---t3 = parse parens "" "("
