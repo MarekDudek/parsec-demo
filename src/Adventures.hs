@@ -2,13 +2,13 @@
 
 module Adventures where
 
-import Control.Monad
-import System.Environment
-import System.FilePath
+import Control.Applicative ((<$>))
+import System.Environment (getArgs)
+import System.FilePath ((</>))
 import Text.ParserCombinators.Parsec
 import Text.Parsec
-import Data.Text
-import Data.Text.Read
+import qualified Data.Text (pack)
+import qualified Data.Text.Read
 
 data Address = Address { start :: Integer, end :: Integer}
   deriving (Eq, Show)
@@ -39,9 +39,9 @@ data MemRegion = MemRegion {
 addressParser :: Stream s m Char => ParsecT s u m Address
 addressParser = 
   do
-    s <- hexadec
+    s <- hexadecimal
     char '-'
-    e <- hexadec
+    e <- hexadecimal
     return Address { start = s, end = e }
 
 accessParser :: Stream s m Char => ParsecT s u m Access
@@ -64,9 +64,9 @@ permissionsParser =
 deviceParser :: Stream s m Char => ParsecT s u m Device
 deviceParser = 
   do
-    m1 <- hexadec
+    m1 <- hexadecimal
     char ':'
-    m2 <- hexadec
+    m2 <- hexadecimal
     return Device { major = m1, minor = m2 }
 
 regionParser :: Stream s m Char => ParsecT s u m MemRegion
@@ -77,7 +77,7 @@ regionParser =
     char ' '
     p <- permissionsParser
     char ' '
-    o <- hexadec
+    o <- hexadecimal
     char ' '
     d <- deviceParser
     char ' '
@@ -86,13 +86,13 @@ regionParser =
     pn <- parsePath <|> string ""
     return MemRegion { address = a, perms = p, offset = o, device = d, inode = Prelude.read i, pathname = pn }
 
-
-hexadec :: Stream s m Char => ParsecT s u m Integer
-hexadec = 
+hexadecimal :: Stream s m Char => ParsecT s u m Integer
+hexadecimal = 
   do digits <- many1 hexDigit
-     let p = pack digits
-         Right (h, _) = hexadecimal p
+     let p = Data.Text.pack digits
+         Right (h, _) = Data.Text.Read.hexadecimal p
      return h
+
 
 getMemRegions :: Int -> IO [MemRegion]
 getMemRegions pid = let
@@ -102,12 +102,14 @@ getMemRegions pid = let
                        Left _ -> error "Failed to parse line"
                        Right x -> x
   in do
-    mapContent <- liftM Prelude.lines $ readFile fp
-    return $ Prelude.map doParseLine mapContent
+    ls <- lines <$> readFile fp
+    return $ map doParseLine ls
 
 
-m :: IO ()
-m = do
-  --pid <- liftM (Prelude.read . (!! 0)) getArgs
-  regs <- getMemRegions 1034
-  mapM_ (putStrLn . show) regs
+main :: IO ()
+main = do
+  args <- getArgs
+  let arg = head args
+      p = read arg :: Int
+  regs <- getMemRegions p
+  mapM_ print regs

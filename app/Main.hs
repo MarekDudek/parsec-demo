@@ -4,4 +4,4 @@ import Lib
 import qualified Adventures
 
 main :: IO ()
-main = Adventures.m
+main = Adventures.main
