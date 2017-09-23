@@ -41,10 +41,10 @@ data MemRegion = MemRegion {
 parseAddress :: Stream s m Char => ParsecT s u m Address
 parseAddress = 
   do
-    start <- hexadec
+    s <- hexadec
     char '-'
-    end   <- hexadec
-    return Address { start = start, end = end }
+    e <- hexadec
+    return Address { start = s, end = e }
 
 parsePerms :: Stream s m Char => ParsecT s u m Perms
 parsePerms = 
@@ -60,30 +60,28 @@ parsePerms =
 
 parseDevice :: Stream s m Char => ParsecT s u m Device
 parseDevice = 
-  let hexStr2Int = Prelude.read . ("0x" ++)
-  in do
-    maj <- many1 digit
+  do
+    major <- hexadec
     char ':'
-    min <- many1 digit
-    return $ Device (hexStr2Int maj) (hexStr2Int min)
+    minor <- hexadec
+    return Device { major = major, minor = minor }
 
 parseRegion :: Stream s m Char => ParsecT s u m MemRegion
 parseRegion =
-  let hexStr2Int = Prelude.read . ("0x" ++)
-      parsePath = many1 (char ' ') >> many1  anyChar
+  let parsePath = many1 (char ' ') >> many1  anyChar
   in do
     addr <- parseAddress
     char ' '
     perm <- parsePerms
     char ' '
-    off <- many1 hexDigit
+    off <- hexadec
     char ' '
     dev <- parseDevice
     char ' '
     ino <- many1 digit
     char ' '
     pat <- parsePath <|> string ""
-    return MemRegion {address = addr, perms = perm, offset = hexStr2Int off, device = dev, inode = Prelude.read ino, pathname = pat}
+    return MemRegion {address = addr, perms = perm, offset = off, device = dev, inode = Prelude.read ino, pathname = pat}
 
 
 hexadec :: Stream s m Char => ParsecT s u m Integer

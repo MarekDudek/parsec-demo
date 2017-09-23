@@ -21,7 +21,7 @@ spec =
             it "works on simple case" $
                 parse parseDevice "" "0:1" `shouldBe` Right Device {major = 0, minor = 1}
             it "works on real case" $
-                parse parseDevice "" "03:0c" `shouldBe` Right Device {major = 3, minor = 0} -- TODO: this is wrong minor
+                parse parseDevice "" "03:0c" `shouldBe` Right Device {major = 3, minor = 12 }
         describe "Memory region parsing" $ 
             it "works on example" $
                 parse parseRegion "" "08058000-0805b000 rwxp 00000000 00:00 0 " `shouldBe` Right region
