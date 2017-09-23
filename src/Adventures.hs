@@ -11,7 +11,7 @@ import Text.Parsec
   
 
 data Address = Address { start :: Integer, end :: Integer}
-  deriving Show
+  deriving (Eq, Show)
 
 data Access = Shared | Private
   deriving Show
