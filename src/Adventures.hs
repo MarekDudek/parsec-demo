@@ -14,14 +14,14 @@ data Address = Address { start :: Integer, end :: Integer}
   deriving (Eq, Show)
 
 data Access = Shared | Private
-  deriving Show
+  deriving (Eq, Show)
 
 data Perms = Perms {
     read       :: Bool,
     write      :: Bool,
     executable :: Bool,
     access     :: Access
-} deriving Show
+} deriving (Eq, Show)
 
 data Device = Device { major:: Integer, minor :: Integer}
   deriving Show
@@ -44,3 +44,16 @@ parseAddress = let
     char '-'
     end <- many1 hexDigit
     return $ Address (hexStr2Int start) (hexStr2Int end)
+
+
+parsePerms :: Stream s m Char => ParsecT s u m Perms
+parsePerms = 
+  let cA a = case a of 
+        'p' -> Private
+        's' -> Shared
+  in do
+    r <- anyChar
+    w <- anyChar
+    x <- anyChar
+    a <- anyChar
+    return $ Perms (r =='r') (w == 'w') (x == 'x') (cA a)
