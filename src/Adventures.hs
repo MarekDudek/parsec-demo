@@ -3,7 +3,7 @@
 module Adventures where
 
 import Control.Monad
---import System
+import System.Environment
 import System.FilePath
 import Text.ParserCombinators.Parsec
 import Text.Parsec
@@ -17,7 +17,7 @@ data Access = Shared | Private
   deriving (Eq, Show)
 
 data Perms = Perms {
-    read2       :: Bool,
+    read2      :: Bool,
     write      :: Bool,
     executable :: Bool,
     access     :: Access
@@ -93,3 +93,21 @@ hexadec =
      let p = pack digits
          Right (h, _) = hexadecimal p
      return h
+
+getMemRegions :: Int -> IO [MemRegion]
+getMemRegions pid = let
+    fp = "/proc" </> show pid </> "maps"
+    doParseLine' = parse regionParser "regionParser"
+    doParseLine l = case doParseLine' l of
+                       Left _ -> error "Failed to parse line"
+                       Right x -> x
+  in do
+    mapContent <- liftM Prelude.lines $ readFile fp
+    return $ Prelude.map doParseLine mapContent
+
+
+m :: IO ()
+m = do
+  --pid <- liftM (Prelude.read . (!! 0)) getArgs
+  regs <- getMemRegions 1034
+  mapM_ (putStrLn . show) regs
