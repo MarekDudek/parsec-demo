@@ -2,7 +2,6 @@
 
 module Adventures where
 
-
 import Control.Monad
 --import System
 import System.FilePath
@@ -11,7 +10,6 @@ import Text.Parsec
 import Data.Text
 import Data.Text.Read
 
-
 data Address = Address { start :: Integer, end :: Integer}
   deriving (Eq, Show)
 
@@ -19,7 +17,7 @@ data Access = Shared | Private
   deriving (Eq, Show)
 
 data Perms = Perms {
-    read       :: Bool,
+    read2       :: Bool,
     write      :: Bool,
     executable :: Bool,
     access     :: Access
@@ -38,50 +36,55 @@ data MemRegion = MemRegion {
 } deriving (Eq, Show)
 
 
-parseAddress :: Stream s m Char => ParsecT s u m Address
-parseAddress = 
+addressParser :: Stream s m Char => ParsecT s u m Address
+addressParser = 
   do
     s <- hexadec
     char '-'
     e <- hexadec
     return Address { start = s, end = e }
 
-parsePerms :: Stream s m Char => ParsecT s u m Perms
-parsePerms = 
-  let cA a = case a of 
-        'p' -> Private
-        's' -> Shared
-  in do
+accessParser :: Stream s m Char => ParsecT s u m Access
+accessParser = 
+  let private = do char 'p'
+                   return Private
+      shared  = do char 's' 
+                   return Shared
+  in private <|> shared
+    
+permissionsParser :: Stream s m Char => ParsecT s u m Perms
+permissionsParser = 
+  do
     r <- anyChar
     w <- anyChar
     x <- anyChar
-    a <- anyChar
-    return $ Perms (r =='r') (w == 'w') (x == 'x') (cA a)
+    a <- accessParser
+    return Perms { read2 = r =='r', write = w == 'w', executable = x == 'x', access = a }
 
-parseDevice :: Stream s m Char => ParsecT s u m Device
-parseDevice = 
+deviceParser :: Stream s m Char => ParsecT s u m Device
+deviceParser = 
   do
-    major <- hexadec
+    m1 <- hexadec
     char ':'
-    minor <- hexadec
-    return Device { major = major, minor = minor }
+    m2 <- hexadec
+    return Device { major = m1, minor = m2 }
 
-parseRegion :: Stream s m Char => ParsecT s u m MemRegion
-parseRegion =
-  let parsePath = many1 (char ' ') >> many1  anyChar
+regionParser :: Stream s m Char => ParsecT s u m MemRegion
+regionParser =
+  let parsePath = many1 (char ' ') >> many1 anyChar
   in do
-    addr <- parseAddress
+    a <- addressParser
     char ' '
-    perm <- parsePerms
+    p <- permissionsParser
     char ' '
-    off <- hexadec
+    o <- hexadec
     char ' '
-    dev <- parseDevice
+    d <- deviceParser
     char ' '
-    ino <- many1 digit
+    i <- many1 digit
     char ' '
-    pat <- parsePath <|> string ""
-    return MemRegion {address = addr, perms = perm, offset = off, device = dev, inode = Prelude.read ino, pathname = pat}
+    pn <- parsePath <|> string ""
+    return MemRegion { address = a, perms = p, offset = o, device = d, inode = Prelude.read i, pathname = pn }
 
 
 hexadec :: Stream s m Char => ParsecT s u m Integer
