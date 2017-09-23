@@ -14,9 +14,16 @@
             "command": "stack clean && stack build && stack test"
         },
         {
+            "taskName": "Stack Build",
+            "type": "shell",
+            "command": "stack build",
+            "problemMatcher": []
+        },
+        {
             "taskName": "Stack Test",
             "type": "shell",
-            "command": "stack test"
+            "command": "stack test",
+            "problemMatcher": []
         }
     ]
 }
