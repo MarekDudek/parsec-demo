@@ -8,7 +8,9 @@ import Control.Monad
 import System.FilePath
 import Text.ParserCombinators.Parsec
 import Text.Parsec
-  
+import Data.Text
+import Data.Text.Read
+
 
 data Address = Address { start :: Integer, end :: Integer}
   deriving (Eq, Show)
@@ -38,12 +40,11 @@ data MemRegion = MemRegion {
 
 parseAddress :: Stream s m Char => ParsecT s u m Address
 parseAddress = 
-  let hexStr2Int = Prelude.read . ("0x" ++)
-  in do
-    start <- many1 hexDigit
+  do
+    start <- hexadec
     char '-'
-    end <- many1 hexDigit
-    return $ Address (hexStr2Int start) (hexStr2Int end)
+    end   <- hexadec
+    return Address { start = start, end = end }
 
 parsePerms :: Stream s m Char => ParsecT s u m Perms
 parsePerms = 
@@ -69,7 +70,7 @@ parseDevice =
 parseRegion :: Stream s m Char => ParsecT s u m MemRegion
 parseRegion =
   let hexStr2Int = Prelude.read . ("0x" ++)
-      parsePath = (many1 $ char ' ') >> (many1 $ anyChar)
+      parsePath = many1 (char ' ') >> many1  anyChar
   in do
     addr <- parseAddress
     char ' '
@@ -83,3 +84,11 @@ parseRegion =
     char ' '
     pat <- parsePath <|> string ""
     return MemRegion {address = addr, perms = perm, offset = hexStr2Int off, device = dev, inode = Prelude.read ino, pathname = pat}
+
+
+hexadec :: Stream s m Char => ParsecT s u m Integer
+hexadec = 
+  do digits <- many1 hexDigit
+     let p = pack digits
+         Right (h, _) = hexadecimal p
+     return h
