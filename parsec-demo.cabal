@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib, OfficialExample, Adventures, RealWorldExample
+  exposed-modules:     Lib, OfficialExample, Adventures, RealWorldExample, RandomExamples
   build-depends:       base >= 4.7 && < 5
                      , parsec, text, filepath
   default-language:    Haskell2010
@@ -32,7 +32,7 @@ test-suite parsec-demo-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  other-modules:       OfficialExampleSpec, RealWorldExampleSpec, AdventuresSpec
+  other-modules:       OfficialExampleSpec, RealWorldExampleSpec, AdventuresSpec, RandomExamplesSpec
   build-depends:       base
                      , parsec, text, filepath
                      , parsec-demo
