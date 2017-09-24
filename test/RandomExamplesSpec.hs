@@ -2,18 +2,13 @@ module RandomExamplesSpec where
 
 
 import RandomExamples
+import MessageHelper
 import Text.Parsec
 import Text.ParserCombinators.Parsec
 import Text.Parsec.Error
 import Text.Parsec.Pos
 import Test.Hspec
     
-
-instance Show Message where
-    show (SysUnExpect s) = show s
-    show (UnExpect s)    = show s
-    show (Expect s)      = show s
-    show (Message s)     = show s
 
 spec :: Spec
 spec = 
